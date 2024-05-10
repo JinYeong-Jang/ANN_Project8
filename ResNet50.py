@@ -19,7 +19,7 @@ BATCH_SIZE = 32
 EPOCHS = 25
 VALIDATION_SPLIT = 0.15
 LEARNING_RATE = 0.001
-PATIENCE = 3
+PATIENCE = 5
 MIN_LEARNING_RATE = 0.0001
 DECAY_FACTOR = 0.2
 DENSE_LAYER_ACTIVATION = 'tanh'
@@ -50,16 +50,18 @@ images_width = 28
 train_x = train_x.reshape(train_x.shape[0], images_height, images_width, 1)
 test_x = test_x.reshape(test_x.shape[0], images_height, images_width, 1)
 
-# 클래스 수 = 62
-number_of_classes = 62
+# 클래스 수 = 47
+number_of_classes = 47
 
 # 레이블 원-핫 인코딩
-train_y = tf.keras.utils.to_categorical(train_y, 62)
-test_y = tf.keras.utils.to_categorical(test_y, 62)
+train_y = tf.keras.utils.to_categorical(train_y, number_of_classes)
+test_y = tf.keras.utils.to_categorical(test_y, number_of_classes)
 
+#VALIDATION_SPLIT = 0.15
 train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=VALIDATION_SPLIT, random_state=42)
 
-
+#DENSE_LAYER_ACTIVATION = 'tanh'
+#FINAL_LAYER_ACTIVATION = 'softmax'
 base_model = ResNet50(weights=None, include_top=False, input_tensor=Input(shape=(28, 28, 1)))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
@@ -71,12 +73,20 @@ output = Dense(number_of_classes, activation=FINAL_LAYER_ACTIVATION)(x)
 model = Model(inputs=base_model.input, outputs=output)
 
 # 모델 컴파일
+#LOSS_FUNCTION = 'categorical_crossentropy'
+#LEARNING_RATE = 0.001
+#METRICS = ['accuracy']
+
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
               loss=LOSS_FUNCTION,
               metrics=METRICS)
 
 
 # 콜백 설정
+#DECAY_FACTOR = 0.2
+#PATIENCE = 3
+#MIN_LEARNING_RATE = 0.0001
+
 callbacks = [
     ModelCheckpoint('Best_points_resnet50.h5', verbose=1, save_best_only=True, monitor='val_accuracy', mode='max'),
     EarlyStopping(monitor='val_accuracy', restore_best_weights=True, patience=PATIENCE, mode='max'),
@@ -85,6 +95,8 @@ callbacks = [
 start_time = time.time()  # 학습 시작 시간
 
 # 모델 학습
+#BATCH_SIZE = 32
+#EPOCHS = 10
 history = model.fit(train_x, train_y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(val_x, val_y), callbacks=callbacks)
 
 training_time = time.time() - start_time
