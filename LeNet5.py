@@ -46,12 +46,14 @@ train_x = train_x.reshape(train_x.shape[0], images_height, images_width, 1)
 test_x = test_x.reshape(test_x.shape[0], images_height, images_width, 1)
 
 # 클래스 수 및 원-핫 인코딩
-number_of_classes = 62
+number_of_classes = 47
 train_y = tf.keras.utils.to_categorical(train_y, number_of_classes)
 test_y = tf.keras.utils.to_categorical(test_y, number_of_classes)
 
 # 데이터 분할
-train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=VALIDATION_SPLIT, random_state=42)
+#VALIDATION_SPLIT = 0.15
+#ACTIVATION_FUNCTION = 'tanh'
+# train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=VALIDATION_SPLIT, random_state=42)
 
 # 모델 구성
 model = tf.keras.Sequential([
@@ -66,19 +68,27 @@ model = tf.keras.Sequential([
 ])
 
 # 모델 컴파일
+#LEARNING_RATE = 0.001
+#LOSS_FUNCTION = 'categorical_crossentropy'
+#METRICS = ['accuracy']
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
               loss=LOSS_FUNCTION,
               metrics=METRICS)
 
 # 콜백 설정
+#MIN_LEARNING_RATE = 0.0001
+#DECAY_FACTOR = 0.2
+#PATIENCE = 3
 callbacks = [
     ModelCheckpoint('Best_points.h5', verbose=1, save_best_only=True, monitor='val_accuracy', mode='max'),
     EarlyStopping(monitor='val_accuracy', restore_best_weights=True, patience=PATIENCE, mode='max'),
     ReduceLROnPlateau(monitor='val_loss', patience=PATIENCE, factor=DECAY_FACTOR, min_lr=MIN_LEARNING_RATE)
 ]
 
-start_time = time.time()
 # 모델 학습
+#BATCH_SIZE = 32
+#EPOCHS = 25
+start_time = time.time()
 history = model.fit(train_x, train_y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(val_x, val_y), callbacks=callbacks)
 training_time = time.time() - start_time
 
