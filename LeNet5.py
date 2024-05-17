@@ -14,14 +14,7 @@ np.random.seed(42)
 # 하이퍼파라미터 설정
 BATCH_SIZE = 32
 EPOCHS = 25
-VALIDATION_SPLIT = 0.15
 LEARNING_RATE = 0.001
-PATIENCE = 3
-MIN_LEARNING_RATE = 0.0001
-DECAY_FACTOR = 0.2
-ACTIVATION_FUNCTION = 'tanh'
-LOSS_FUNCTION = 'categorical_crossentropy'
-METRICS = ['accuracy']
 
 # 데이터 불러오기
 testing_set = pd.read_csv('emnist-bymerge-test.csv')
@@ -50,39 +43,32 @@ number_of_classes = 47
 train_y = tf.keras.utils.to_categorical(train_y, number_of_classes)
 test_y = tf.keras.utils.to_categorical(test_y, number_of_classes)
 
-# 데이터 분할
-#VALIDATION_SPLIT = 0.15
-#ACTIVATION_FUNCTION = 'tanh'
-# train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=VALIDATION_SPLIT, random_state=42)
+
+train_x, val_x, train_y, val_y = train_test_split(train_x, train_y, test_size=0.15, random_state=42)
 
 # 모델 구성
 model = tf.keras.Sequential([
-    Conv2D(6, kernel_size=(5, 5), activation=ACTIVATION_FUNCTION, input_shape=(28, 28, 1), padding='same'),
+    Conv2D(6, kernel_size=(5, 5), activation='tanh', input_shape=(28, 28, 1), padding='same'),
     AveragePooling2D(),
-    Conv2D(16, kernel_size=(5, 5), activation=ACTIVATION_FUNCTION),
+    Conv2D(16, kernel_size=(5, 5), activation='tanh'),
     AveragePooling2D(),
     Flatten(),
-    Dense(120, activation=ACTIVATION_FUNCTION),
-    Dense(84, activation=ACTIVATION_FUNCTION),
+    Dense(120, activation='tanh'),
+    Dense(84, activation='tanh'),
     Dense(number_of_classes, activation='softmax')
 ])
 
 # 모델 컴파일
 #LEARNING_RATE = 0.001
-#LOSS_FUNCTION = 'categorical_crossentropy'
-#METRICS = ['accuracy']
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-              loss=LOSS_FUNCTION,
-              metrics=METRICS)
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
 
 # 콜백 설정
-#MIN_LEARNING_RATE = 0.0001
-#DECAY_FACTOR = 0.2
-#PATIENCE = 3
 callbacks = [
     ModelCheckpoint('Best_points.h5', verbose=1, save_best_only=True, monitor='val_accuracy', mode='max'),
-    EarlyStopping(monitor='val_accuracy', restore_best_weights=True, patience=PATIENCE, mode='max'),
-    ReduceLROnPlateau(monitor='val_loss', patience=PATIENCE, factor=DECAY_FACTOR, min_lr=MIN_LEARNING_RATE)
+    EarlyStopping(monitor='val_accuracy', restore_best_weights=True, patience=5, mode='max'),
+    ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.2, min_lr=0.0001)
 ]
 
 # 모델 학습
@@ -90,6 +76,7 @@ callbacks = [
 #EPOCHS = 25
 start_time = time.time()
 history = model.fit(train_x, train_y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(val_x, val_y), callbacks=callbacks)
+
 training_time = time.time() - start_time
 
 # 시각화
